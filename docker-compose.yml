@@ -1,0 +1,39 @@
+version: '3'
+services:
+  nginx:
+    image: mysocietyorg/nginx:0.0.1
+    volumes:
+        - ${DEPLOY_PATH}/conf/nginx.conf:/etc/nginx/sites-available/default:ro
+        - ${DEPLOY_PATH}/web:/var/www/html:ro
+        - ${HTPASSWD}:/etc/nginx/htpasswd:ro
+    ports:
+      - "127.0.0.1:${PORT}:80"
+    networks:
+      default:
+        aliases:
+          - nginx.svc
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  puppetboard:
+    image: sagepe/puppetboard:0dd0945
+    volumes:
+      - ${DEPLOY_PATH}/ssl:/etc/puppetlabs/puppetdb/ssl:ro
+    networks:
+      default:
+        aliases:
+          - puppetboard.svc
+    environment:
+      - PUPPETDB_HOST=puppet.ukcod.org.uk
+      - PUPPETDB_PORT=8081
+      - PUPPETDB_SSL_VERIFY=/etc/puppetlabs/puppetdb/ssl/ca.pem
+      - PUPPETDB_KEY=/etc/puppetlabs/puppetdb/ssl/puppetboard.key
+      - PUPPETDB_CERT=/etc/puppetlabs/puppetdb/ssl/puppetboard.crt
+      - "INVENTORY_FACTS='Hostname,fqdn, IP Address,ipaddress'"
+      - ENABLE_CATALOG=True
+      - "GRAPH_FACTS='architecture,puppetversion,osfamily'"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure

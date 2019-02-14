@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# script/bootstrap: Resolve dependencies
+#
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+# Docker check.
+DOCKER_VERSION=$(docker -v 2>/dev/null)
+if [ "$DOCKER_VERSION" = "" ]; then
+  echo "==> WARNING: Docker not found - aborting."
+  exit 1
+else
+  echo "==> Docker version \"$DOCKER_VERSION\" found."
+fi
+
+#
+# SSL dependencies. This will default to look for Puppetboard
+# certs and keys under `/etc/puppetlabs/puppet/ssl`. If your're
+# building or running this on another server, either pre-seed these
+# or override by setting the relevant environment variables.
+#
+echo "==> Checking for required SSL certificates and keys..."
+
+CA_CERT=${CA_CERT:-/etc/puppetlabs/puppet/ssl/certs/ca.pem}
+SSL_CERT=${SSL_CERT:-/etc/puppetlabs/puppet/ssl/certs/puppetboard.pem}
+SSL_KEY=${SSL_KEY:-/etc/puppetlabs/puppet/ssl/private_keys/puppetboard.pem}
+
+if ! [ -d ./ssl ]; then
+  echo "==> Creating SSL directory"
+  mkdir ssl/ || exit 1
+fi
+
+if ! [ -e ./ssl/ca.pem ]; then
+  echo "==> Copying CA Certficate"
+  cp $CA_CERT ./ssl/ || exit 1
+fi
+
+if ! [ -e ./ssl/puppetboard.crt ]; then
+  echo "==> Copying SSL Certificate"
+  cp $SSL_CERT ./ssl/public.pem || exit 1
+fi
+
+if ! [ -e ./ssl/puppetboard.key ]; then
+  echo "==> Copying SSL Key"
+  cp $SSL_KEY ./ssl/private.pem || exit 1
+fi
+
+#
+# Web root for nginx. This should be empty by default.
+#
+echo "==> Checking for web directory..."
+if ! [ -d ./web ]; then
+  echo "==> Creating web root directory."
+  mkdir web/ || exit 1
+fi
+
+#
+# Default admin password.
+#
+if ! [ -e ./conf/htpasswd ]; then
+  echo "==> Generating semi-random default admin password."
+  DEFAULT_PASSWORD=$(openssl rand -base64 12)
+  echo "==> Password for user 'admin' will be '${DEFAULT_PASSWORD}' - make a note!"
+  printf "admin:$(openssl passwd -apr1 ${DEFAULT_PASSWORD})\n" > ./conf/htpasswd
+fi
+
+#
+# Ensure we have the required images locally
+#
+echo "==> Pulling required images..."
+docker-compose pull
+
+echo "==> Bootstrap done."

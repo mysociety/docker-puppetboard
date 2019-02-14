@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# script/server: Launch the application and any extra required processes
+#                locally.
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+# Check for Swarm mode.
+SWARM=$(docker info 2>/dev/null | grep ^Swarm | awk '{ print $NF }')
+# Check for manager or worker status
+if [ "$SWARM" = "active" ] && [ "$(docker info 2>/dev/null | grep 'Is Manager' | awk '{ print $NF}')" != "true" ]; then
+  echo "==> Can't deploy on a Swarm worker node. Please deploy on a manager."
+  exit 1
+fi
+
+# Set some variables used in the compose file and for deployment
+# allowing the environment to take precedence.
+export STACK_NAME="${STACK_NAME:-puppetboard_mysociety_org}"
+export DEPLOY_PATH="${DEPLOY_PATH:-.}"
+export HTPASSWD="${HTPASSWD:-./conf/htpasswd}"
+export PORT="${PORT:-8120}"
+
+# ensure everything in the app is up to date.
+script/update
+
+case "$SWARM" in
+  active)
+    echo "==> Starting Puppetboard in Swarm mode as ${STACK_NAME}."
+    docker stack deploy -c docker-compose.yml $STACK_NAME
+    ;;
+  inactive)
+    echo "==> Starting Puppetboard in Compose mode."
+    docker-compose up -d --no-build
+    ;;
+  *)
+    echo "==> Unknown swarm status ${SWARM_STATUS}, aborting."
+    exit 1
+    ;;
+esac

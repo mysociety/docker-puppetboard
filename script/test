@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# script/test: run tests
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+# All caller to override.
+ENVIRONMENT=${ENVIRONMENT:-test}
+
+# Config check
+echo "==> Running config check..."
+docker-compose config >/dev/null || {
+  echo "==> Config check failed, aborting."
+  exit 1
+}
+echo "==> Config check OK!"
+
+exit 0

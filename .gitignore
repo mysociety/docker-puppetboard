@@ -1,0 +1,10 @@
+# Configuration 
+conf/env.sh
+conf/stack.yml
+
+# Web files
+web/down.html
+
+# Testing
+conf/htpasswd
+ssl/

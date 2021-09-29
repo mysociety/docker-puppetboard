@@ -13,3 +13,6 @@ docker pull debian:bullseye-slim
 docker build -t pb-nginx:latest .
 cd ..
 
+echo "==> Pulling latest Puppetboard image..."
+docker pull ghcr.io/voxpupuli/puppetboard
+

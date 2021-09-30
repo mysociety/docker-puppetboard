@@ -1,6 +1,8 @@
 # Configuration 
 conf/env.sh
 conf/stack.yml
+conf/env.sh.deployed
+conf/stack.yml.deployed
 
 # Web files
 web/down.html

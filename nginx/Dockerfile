@@ -1,6 +1,7 @@
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 RUN apt-get -qq update \
+      && apt-get dist-upgrade -y \
       && apt-get install -y nginx --no-install-recommends \
       && rm -r /var/lib/apt/lists/*
 

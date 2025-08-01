@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 
 echo "==> Building nginx image..."
 cd nginx
-docker pull debian:bullseye-slim
+docker pull debian:bookworm-slim
 docker build -t pb-nginx:latest .
 cd ..
 

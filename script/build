@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 echo "==> Building nginx image..."
 cd nginx
 docker pull debian:bookworm-slim
-docker build -t pb-nginx:latest .
+docker build --no-cache -t pb-nginx:latest .
 cd ..
 
 echo "==> Pulling latest Puppetboard image..."
